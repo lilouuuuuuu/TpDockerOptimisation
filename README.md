@@ -13,7 +13,9 @@ Pour commencer, on créé un .gitignore et un .dockerignore pour ne pas commiter
 
 Initialement, au build de l'image docker de l'application, la durée de build est de 75.4 secondes. 
 Avec le changement de l'image de node:latest en node-20:alpine, le build dure 32.0 secondes. 
+Après l'instanciation du multistage, le build dure environ 23.8 secondes. 
 
 
 # Optimisation de l'application
 - Choisir une image légère : node:20-alpine (environ 130 à 135 Mo) à la place de node:latest (424.3 MB)
+- Multistage : séparation des étapes de build et de production 

@@ -1,16 +1,44 @@
-FROM node:20-alpine
+# ==========================================
+# STAGE 1 : BUILD
+# ==========================================
+FROM node:20-alpine AS build
+
 WORKDIR /app
-COPY . /app
-RUN npm install
-RUN apk update && apk add --no-cache \
+
+# Outils nécessaires à la compilation des dépendances natives
+RUN apk add --no-cache \
     build-base \
-    python3 \
-    make \
-    g++ \
-    ca-certificates \
-    tzdata
-EXPOSE 3000 4000 5000
-ENV NODE_ENV=development
+    python3
+
+# Installation des dépendances
+COPY package*.json ./
+RUN npm ci
+
+# Copie du code source
+COPY . .
+
+# Compilation de l'application
 RUN npm run build
-USER root
+
+
+# ==========================================
+# STAGE 2 : PRODUCTION
+# ==========================================
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+# Dépendances nécessaires à l'exécution
+RUN apk add --no-cache \
+    ca-certificates \
+    tzdata \
+    libstdc++
+
+# Récupération de l'application et de ses dépendances depuis le stage build
+COPY --from=build /app /app
+
+# Configuration de l'environnement
+ENV NODE_ENV=production
+USER node
+EXPOSE 3000 4000 5000
 CMD ["node", "server.js"]
